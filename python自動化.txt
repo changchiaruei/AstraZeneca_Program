@@ -1,0 +1,2010 @@
+import os
+import win32com.client
+import pandas as pd
+import numpy as np
+import copy
+import tkinter as tk
+import tkinter.ttk as tt
+from PIL import ImageTk, Image
+import webbrowser
+import time
+
+import winerror
+
+input_path=r"C:\Users\kszp796\OneDrive - AZCollaboration\Desktop\自動化處理"
+
+def CloseWin():
+    window.destroy()    
+def EmailAtt():
+    excel = win32com.client.Dispatch("Excel.Application")
+    excel.Workbooks.Open(Filename=os.path.join(input_path+'\\資料庫','Extract_email_attachment.xlsm'))
+    excel.Application.Run("GetFromOutlook2")
+    excel.Application.Quit()
+    del excel
+    windows1=tk.Toplevel()
+    windows1.geometry('300x250')
+    labGrade = tk.Label(windows1, text = '附件下載完成!', justify=tk.RIGHT, width=50)
+    labGrade.place(x=100, y=90, width=100, height=20)    
+    labGrade1 = tk.Label(windows1, text = '請關閉視窗來繼續', justify=tk.RIGHT, width=50)
+    labGrade1.place(x=100, y=110, width=100, height=20)
+def UpdateData():
+    webbrowser.open_new('https://azie.my.salesforce.com/servlet/PrintableViewDownloadServlet?isdtp=p1&reportId=00O2x000003AR2KEAW')
+    time.sleep(3)
+    webbrowser.open_new_tab('https://azie.my.salesforce.com/servlet/PrintableViewDownloadServlet?isdtp=p1&reportId=00O2x000003AQKwEAO')
+    time.sleep(1)
+    webbrowser.open_new_tab('https://azie.my.salesforce.com/servlet/PrintableViewDownloadServlet?isdtp=p1&reportId=00O2x000003AR2UEAW')
+    time.sleep(1)
+    webbrowser.open_new_tab('https://az.box.com/s/d7a6qqc9gsugtfc588588npei13an5gy')
+def ScanAndPrint():
+    CloseWin()
+    from win32com.client import Dispatch
+    from win32com.client.dynamic import ERRORS_BAD_CONTEXT
+    
+    import winerror
+    
+    try:
+        from scandir import walk
+    except ImportError:
+        from os import walk
+    
+    import fnmatch
+    
+    
+    import os
+    
+    
+    import win32api
+
+    #win32api.ShellExecute(0, 'open', 'C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe', '','',1)
+    #time.sleep(3)
+    
+    def mkdir(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+    path = os.path.join(input_path,'newdir')
+    mkdir(path)
+    processing_folder_path=os.path.join(input_path,'newdir')
+    
+    
+    ROOT_INPUT_PATH = input_path
+    ROOT_OUTPUT_PATH = processing_folder_path
+    INPUT_FILE_EXTENSION = "*.pdf"
+    OUTPUT_FILE_EXTENSION = ".docx"
+    
+    def acrobat_extract_text(f_path, f_path_out, f_basename, f_ext):
+    
+        avDoc = Dispatch("AcroExch.AVDoc") 
+        ret = avDoc.Open(f_path, f_path)
+        
+    
+        
+        
+        pdDoc = avDoc.GetPDDoc()
+        
+        a=pdDoc.GetNumPages()
+    
+        dst = os.path.join(f_path_out, ''.join((f_basename, f_ext)))
+    
+        jsObject = pdDoc.GetJSObject()
+        
+        jsObject.SaveAs(dst, "com.adobe.acrobat.docx")
+    
+        pdDoc2 = avDoc.GetPDDoc()
+       
+        if a==1:
+            dst2 = os.path.join(f_path_out, ''.join((f_basename+"_Page_1", ".jpeg")))
+            jsObject2 = pdDoc2.GetJSObject()
+            jsObject2.SaveAs(dst2, "com.adobe.acrobat.jpeg")
+        else:
+            dst2 = os.path.join(f_path_out, ''.join((f_basename, ".jpeg")))       
+            jsObject2 = pdDoc2.GetJSObject()
+            jsObject2.SaveAs(dst2, "com.adobe.acrobat.jpeg")
+    
+        pdDoc.Close()
+        avDoc.Close(True) 
+        del pdDoc
+        del pdDoc2
+        
+    
+    if __name__ == "__main__":
+        
+    
+        ROOT_INPUT_PATH = os.path.join(input_path+"\\需要掃描的檔案")
+        INPUT_FILE_EXTENSION ="*.pdf"
+        ROOT_OUTPUT_PATH = processing_folder_path
+        OUTPUT_FILE_EXTENSION = ".docx"
+       # matching_files = ((os.path.join(_root, filename), os.path.splitext(filename)[0]) for _root, _dirs, _files in ROOT_INPUT_PATH for filename in fnmatch.filter(_files, INPUT_FILE_EXTENSION))   
+
+        matching_files = ((os.path.join(_root, filename), os.path.splitext(filename)[0]) for _root, _dirs, _files in walk(ROOT_INPUT_PATH) for filename in fnmatch.filter(_files, INPUT_FILE_EXTENSION))   
+        global ERRORS_BAD_CONTEXT
+        ERRORS_BAD_CONTEXT.append(winerror.E_NOTIMPL)
+    
+        for filename_with_path, filename_without_extension in matching_files:
+         
+            acrobat_extract_text(filename_with_path, ROOT_OUTPUT_PATH, filename_without_extension, OUTPUT_FILE_EXTENSION)
+            
+            
+            
+    from win32com import client as wc
+    
+    import fnmatch
+     
+     
+    all_FileNum = 0
+    debug = 0
+     
+    
+    def Translate(path):
+        
+        global debug, all_FileNum 
+        all_FileNum = 0
+        debug = 0
+        if debug:
+            print (path)
+       
+        files = os.listdir(path) 
+        
+        New_dir = os.path.abspath(os.path.join(path, 'newdir'))
+        if not os.path.exists(New_dir):
+            os.mkdir(New_dir)
+        if debug:
+            print (New_dir)
+       
+        fileNameSet= os.path.abspath(os.path.join(New_dir, 'fileNames.txt'))
+        o=open(fileNameSet,"w") 
+        try:
+            for filename in files:
+                if debug:
+                    print (filename)            
+                if not fnmatch.fnmatch(filename, '*.doc') and not fnmatch.fnmatch(filename, '*.docx'):
+                    continue;
+                
+                if fnmatch.fnmatch(filename, '~$*'):
+                    continue;
+                if debug:
+                    print (filename)
+                docpath = os.path.abspath(os.path.join(path,filename))
+                new_txt_name = ''
+                if fnmatch.fnmatch(filename, '*.doc'):    
+                    new_txt_name = filename[:-4]+'.txt'
+                else:
+                    new_txt_name = filename[:-5]+'.txt'
+                if debug:
+                    print (new_txt_name)
+                word_to_txt = os.path.join(os.path.join(path, 'newdir'),new_txt_name)
+                print (word_to_txt)
+                wordapp = wc.Dispatch('Word.Application')
+                doc = wordapp.Documents.Open(docpath)
+                doc.SaveAs(word_to_txt,4)
+                doc.Close()
+                o.write(word_to_txt+'\n')
+                all_FileNum += 1
+        finally:
+            wordapp = wc.Dispatch('Word.Application')
+            wordapp.Quit()
+            o.close()
+     
+    if __name__ == '__main__': 
+        mypath =processing_folder_path
+        Translate(mypath)
+    
+    all_FileNum = 0
+    debug = 0
+    path =os.path.join(processing_folder_path,'newdir')
+    E_num=[]
+    E_file_name=[]
+    E_error=[]
+    
+    files = os.listdir(path)    
+    #fileNameSet= os.path.abspath(os.path.join(path, 'fileNames.txt'))
+    #o=open(fileNameSet,"r") 
+    test_docname=[]
+    process=0
+    for filename in files:
+        if filename=='fileNames.txt':
+            continue
+        else:
+            lines=open(os.path.join(path,filename ),"r")
+            lines=lines.readlines()
+            
+            
+            for lines in lines: 
+                if 'E-'in lines:
+                    lines.strip()
+                    a=lines.find('E-')
+                    E_num.append(lines[a:a+8])
+                    refilename=filename.replace('.txt','')
+                    E_file_name.append(refilename) 
+                    process=process+1  
+            
+                    
+            if process==0:
+                refilename=filename.replace('.txt','')         
+                E_error.append(refilename)
+            process=0
+    
+     
+    import pandas as pd
+    E_empty=[]
+    name1=['Event_ID']
+    name4=['file Name']
+    name2=['Scan failes']
+    name3=['-']
+    test1=pd.DataFrame(columns=name1,data=E_num)
+    test2=pd.DataFrame(columns=name2,data=E_error)
+    test4=pd.DataFrame(columns=name4,data=E_file_name)
+    test3=pd.DataFrame(columns=name3,data=E_empty)
+    df = pd.concat( [test1,test4,test3,test3,test2,], axis=1 )
+    df.index=df.index+1
+    print(df)
+    print(test_docname)
+    #df.to_csv(os.path.join(input_path,'Event_ID.csv'),encoding='big5') 
+    
+    #E_num=['E-302268', 'E-300368', 'E-301372']
+    #E_file_name=['20200723172740-0001', '20200723172741-0002', '20200723172744-0003']
+    
+    
+    df = pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_test.xlsx') ,sheet_name='auto_test') 
+    df2 =pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_test_prod.xlsx'), sheet_name='auto_test_prod')
+                        
+                        
+    ALL=np.array(df)
+    ALL_list=ALL.tolist()
+    ALL_list_ADJ=[[row[col]for row in ALL_list ]for col in range(len(ALL_list[0]))]
+    
+    ALL2=np.array(df2)
+    ALL_list2=ALL2.tolist()
+    ALL_list_ADJ2=[[row[col]for row in ALL_list2 ]for col in range(len(ALL_list2[0]))]
+    
+    E_ID=ALL_list_ADJ[1]
+    
+    DocNAME=ALL_list_ADJ[4]
+    for i in range(0,len(DocNAME)):
+        DocNAME[i]=str(DocNAME[i])
+        DocNAME[i]=DocNAME[i].strip('., ')
+    
+    ADOC_ID=ALL_list_ADJ[3]
+    
+    ASTART_DATE=ALL_list_ADJ[5]
+    
+    ALocation=ALL_list_ADJ[6]
+    
+    AFee=ALL_list_ADJ[7]
+    
+    AInternal_Order=ALL_list_ADJ[8]
+    
+    E_ID_Br=ALL_list_ADJ2[1]
+    
+    Br=ALL_list_ADJ2[3]
+    
+    def EnterEID():
+        global EnterEID
+        E_num.append('E-'+e.get())
+        E_file_name.append(E_error[i])
+        window.destroy()
+        
+    def CancelEID():
+        global CancelEID
+        window.destroy()
+    
+    for i in range(0,len(E_error)):
+        window = tk.Tk()
+        window.title('請協助輸入Event ID')
+        window.geometry('1300x750')
+        varName = tk.StringVar()
+        varName.set('')
+        labGrade = tk.Label(window, text = '請輸入EventID(輸入後6位數字即可)', justify=tk.RIGHT, width=200)
+        labGrade.place(x=30, y=40, width=200, height=20)
+        labGrade2 = tk.Label(window, text = 'E-', justify=tk.RIGHT, width=50)
+        labGrade2.place(x=35, y=70, width=100, height=20)
+        e = tk.Entry(window ,show=None, font=('Arial', 14)) 
+        e.place(x=100, y=70)
+        b = tk.Button(window, text='確定', font=('Arial', 12), width=20, height=1, command=EnterEID)
+        b.place(x=70,y=450)
+        c = tk.Button(window, text='這張圖片不需要處理', font=('Arial', 12), width=20, height=1, command=CancelEID)
+        c.place(x=70,y=500)
+        
+        test_photo=Image.open(os.path.join(processing_folder_path, E_error[i]+"_Page_1.jpeg" ))
+        #test_r=test_photo.rotate(270)
+        adj_photo=test_photo.resize((600,800))
+        img=ImageTk.PhotoImage(adj_photo)
+        panel=tk.Label(image=img,width=850,height=800)
+        panel.place(x=400,y=10)
+        window.mainloop()
+            
+    
+    
+    docNAME2=[[0 for i in range(0,len(E_ID))] for j in range(0,len(E_num))]
+    
+    
+    for i in range(0,len(E_num)):
+        for z in range(0,len(E_ID)):
+            if E_ID[z]==E_num[i]:
+                docNAME2[i][z]=DocNAME[z]   
+            
+            
+                
+                
+    doc_name_output=[]
+    pop_docNAME=[]
+    final_str_num=[]
+    
+    def Enter():
+        global Enter
+        final_str_num.pop(-1)
+        test2=0
+        if comGrade.get()=='':
+            doc_name_output.pop(-1)
+            doc_name_output.append('Empty') 
+        else:
+            doc_name_output.pop(-1)
+            doc_name_output.append(comGrade.get()) 
+        
+        for w in range(0,len(data_num[i])):
+            if comGrade.get()==DocNAME[data_num[i][w]]:
+                final_str_num.append(data_num[i][w])
+                test2=test2+1
+        if test2==0:
+            final_str_num.append('Error')
+        
+            
+        window.destroy()
+    
+    def Cancel():
+        global Cancel
+        doc_name_output.pop(-1)
+        doc_name_output.append('Cancel')
+        window.destroy()
+        
+    def Mistake():
+        global Mistake
+        doc_name_output.pop(-1)
+        doc_name_output.append('Mistake')
+        window.destroy()
+        
+         
+        
+        
+    test=0
+    
+    data_num=[]
+    data_sub=[]
+    for i in range(0,len(E_num)):
+        for z in range(0,len(E_ID)):
+            if docNAME2[i][z]==0:            
+                continue
+            else:
+                pop_docNAME.append(docNAME2[i][z])
+                data_sub.append(z)
+                test=test+1
+        if len(data_sub)>0:
+            data_cer=copy.deepcopy(data_sub)
+            data_num.append(data_cer)
+            data_sub.clear()
+        if test==0:
+            doc_name_output.append('E_ID_Error')
+            data_num.append([])
+            final_str_num.append("Error")
+            pop_docNAME.clear()
+            continue
+        if len(pop_docNAME)==1:
+            test=0
+            doc_name_output.append(pop_docNAME[0])
+            final_str_num.append(data_num[i][0])
+            pop_docNAME.clear()
+            continue
+        
+            
+        else:
+            test=0
+            window = tk.Tk()
+            window.title('請選擇醫生姓名')
+            window.geometry('1300x800')
+            varName = tk.StringVar()
+            varName.set('')
+            labGrade = tk.Label(window, text = '醫生姓名:', justify=tk.RIGHT, width=50)
+            labGrade.place(x=10, y=40, width=100, height=20)
+            stdGrade = (pop_docNAME)
+            comGrade = tt.Combobox(window, width=50, values=stdGrade)
+            comGrade.place(x=110, y=40, width=100, height=20)
+            b = tk.Button(window, text='確定', font=('Arial', 12), width=20, height=1, command=Enter)
+            b.place(x=70,y=450)
+            c = tk.Button(window, text='這張圖片不需要處理', font=('Arial', 12), width=20, height=1, command=Cancel)
+            c.place(x=70,y=500)
+            d = tk.Button(window, text='沒有符合的醫生姓名', font=('Arial', 12), width=20, height=1, command=Mistake)
+            d.place(x=70,y=550)
+    
+            
+            test_photo=Image.open(os.path.join(processing_folder_path, E_file_name[i]+"_Page_1.jpeg" ))
+    #        test_r=test_photo.rotate(270)
+            adj_photo=test_photo.resize((600,800))
+            img=ImageTk.PhotoImage(adj_photo)
+            panel=tk.Label(image=img,width=850,height=800)
+            panel.place(x=400,y=10)
+            doc_name_output.append('Close_windows') 
+            final_str_num.append('Error')
+            
+        
+            
+            
+    
+            window.mainloop()
+            pop_docNAME.clear()
+            
+    print(E_num)
+    print(E_file_name)
+    print(data_num)
+    print(doc_name_output)
+    print(final_str_num)
+    mamu_Error_file_name=[]
+    F_doc_name=[]
+    F_fee=[]
+    F_date=[]
+    F_location=[]
+    F_cost_number=[]
+    F_GL=[]
+    F_IO=[]
+    F_brand=[]
+    F_docID=[]
+    
+    df4 = pd.read_excel(os.path.join(input_path+'\\資料庫\\Vendor master.xlsx') )
+    df4 = df4.fillna("Y")
+    ALL4=np.array(df4)
+    ALL_list4=ALL4.tolist()
+    ALL_list_ADJ4=[[row[col]for row in ALL_list4 ]for col in range(len(ALL_list4[0]))]   
+  
+    TW_ID_master=ALL_list_ADJ4[0]  
+    Name_master=ALL_list_ADJ4[1] 
+    B_master=ALL_list_ADJ4[2] 
+    delF_master=ALL_list_ADJ4[3] 
+    Methods_master=ALL_list_ADJ4[4] 
+    TW_ID_NO_master=ALL_list_ADJ4[7] 
+    
+    master_pro=[]
+    master_str=[]
+    B_and_DelF_error=[]
+    PayMethods=[]
+    
+    
+    df5 = pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_cost.xlsx') )
+    df5 = df5.fillna("NaN")
+    ALL5=np.array(df5)
+    ALL_list5=ALL5.tolist()
+    ALL_list_ADJ5=[[row[col]for row in ALL_list5 ]for col in range(len(ALL_list5[0]))]   
+    E_ID_cost=ALL_list_ADJ5[1]
+    Type_cost=ALL_list_ADJ5[3]
+    Cost_cost=ALL_list_ADJ5[4]
+    Name_cost=ALL_list_ADJ5[5]
+    for i in range(0,len(Name_cost)):
+        Name_cost[i]=Name_cost[i].strip('., ')
+    
+    
+    
+    
+    def Enter5():
+        
+        F_docID.pop(-1)
+        master_str.pop(-1)
+        print(comGrade3.get())
+        for x in range(0,len(TW_ID_NO_master)):
+            if comGrade3.get()==TW_ID_NO_master[x]:
+                master_str.append(x)
+                F_docID.append(TW_ID_master[x])
+                break
+        window5.destroy()
+            
+    def stop5():
+       window5.destroy()
+    
+    
+    master_error=[]
+    
+    
+    
+    for i in range(0,len(E_num)):
+        if final_str_num[i]=='Error':
+            mamu_Error_file_name.append(E_file_name[i])
+            F_doc_name.append("Error")
+            F_fee.append("Error")
+            F_date.append("Error")
+            F_location.append("Error")
+            F_cost_number.append("Error")
+            F_GL.append("Error")
+            F_IO.append("Error")
+            F_brand.append("Error")
+            F_docID.append("Error")
+            PayMethods.append("Error")
+            B_and_DelF_error.append("Error")
+        
+        else:
+            
+            
+            test_cost_f=0
+            test_cost=0
+            for z in range(0,len(E_ID_cost)):
+                if str(E_num[i])==E_ID_cost[z]:
+                    test_cost=test_cost+1
+                    if Type_cost[z]=="演講費":
+                        test_cost=test_cost+1
+                        if Name_cost[z]==DocNAME[final_str_num[i]]:
+                            test_cost=test_cost+1
+                            if Cost_cost[z] !="NaN":
+                                test_cost_f=test_cost_f+1
+                                F_fee.append(Cost_cost[z])
+                                break
+          
+            if test_cost_f==0:              
+                for q in range(0,len(E_ID_cost)):
+                    if str(E_num[i])==E_ID_cost[q]:                        
+                        if Type_cost[q]=="演講費":   
+                            if Name_cost[q]=="NaN":   
+                                if Cost_cost[q] !="NaN":
+                                    F_fee.append(Cost_cost[q])
+                                    test_cost_f=test_cost_f+1
+                                    break     
+            
+            if test_cost_f==0:
+                  F_fee.append("Error")
+            
+            
+            
+            
+            
+            
+            pro_ID=[]
+            master_pro.clear()
+            pro_ID.clear()
+            for z in range(0,len(TW_ID_master)):
+                if DocNAME[final_str_num[i]]==Name_master[z]:
+                    master_pro.append(z)
+            if len(master_pro)==0:
+                print("Vendor Error")
+                master_str.append("Error")
+                F_docID.append("Error")
+                master_error.append(i)
+            if len(master_pro)==1:
+                F_docID.append(TW_ID_master[master_pro[0]])
+                master_str.append(master_pro[0])
+            if len(master_pro)>1:
+               print(master_pro)
+               for q in range(0,len(master_pro)):
+                   pro_ID.append(TW_ID_NO_master[master_pro[q]])
+                   
+               window5 = tk.Tk()
+               window5.title('請協助辨識醫生身分證字號')
+               window5.geometry('500x600')
+               varName = tk.StringVar()
+               varName.set('')
+               labGrade1 = tk.Label(window5, text = 'Event-ID : '+str(E_ID[final_str_num[i]]), justify=tk.RIGHT, width=50)
+               labGrade1.place(x=10, y=40, width=140, height=20)
+               labGrade = tk.Label(window5, text = '醫生姓名:'+str(DocNAME[final_str_num[i]]), justify=tk.RIGHT, width=250)
+               labGrade.place(x=15, y=80, width=100, height=20)
+               labGrade = tk.Label(window5, text = "請選擇身分證字號:",justify=tk.RIGHT, width=250)
+               labGrade.place(x=15, y=120, width=100, height=20)
+               stdGrade3 = pro_ID
+               comGrade3 = tt.Combobox(window5, width=50, values=stdGrade3)
+               comGrade3.place(x=150, y=120, width=100, height=20)
+               b = tk.Button(window5, text='確定', font=('Arial', 12), width=25, height=1, command=Enter5)
+               b.place(x=70,y=350)
+               d = tk.Button(window5, text='取消', font=('Arial', 12), width=25, height=1, command=stop5)
+               d.place(x=70,y=450)
+               F_docID.append("Error")
+               master_str.append("Error")
+               window5.mainloop() 
+            print("master_str")
+            print(master_str)
+            if master_str[i] !="Error":
+                if B_master[master_str[i]]=='X' or delF_master[master_str[i]] == 'X':
+                  
+                       window6 = tk.Tk()
+                       window6.title('沒有付款方式(Vendor Error)')
+                       window6.geometry('330x250')
+                       varName = tk.StringVar()
+                       varName.set('')
+                       labGrade6 = tk.Label(window6, text = 'Event-ID : '+str(E_ID[final_str_num[i]]), justify=tk.RIGHT, width=300)
+                       labGrade6.place(x=10, y=40, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '醫生姓名:'+str(DocNAME[final_str_num[i]]+str(F_docID[i])), justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=80, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '付款方式尚未設定', justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=120, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '請手動處理'+str(DocNAME[final_str_num[i]])+"的Cover Page", justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=160, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '(關閉視窗來繼續執行)', justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=200, width=300, height=20)
+                       window6.mainloop() 
+                       B_and_DelF_error.append('1')
+                       
+                
+                
+                
+                if  B_master[master_str[i]]== "Y" and delF_master[master_str[i]]=="Y":
+                       B_and_DelF_error.append('0')
+        
+                PayMethods.append(Methods_master[master_str[i]])
+                
+                
+                
+                
+            else:
+                B_and_DelF_error.append('1')
+                PayMethods.append("Error")
+            
+       
+            F_doc_name.append(str(DocNAME[final_str_num[i]])+str(ADOC_ID[final_str_num[i]]))
+           # F_fee.append(AFee[final_str_num[i]])
+            F_date.append(ASTART_DATE[final_str_num[i]])
+            F_location.append(ALocation[final_str_num[i]])
+            F_cost_number.append('21007000')
+            F_GL.append('57800100')
+            F_IO.append(AInternal_Order[final_str_num[i]])
+            # F_docID.append(ADOC_ID[final_str_num[i]])
+            for z in range(0,len(E_ID_Br)):
+                if E_ID_Br[z]==E_num[i]:
+                    a=Br[z]
+                    if a=='Crestor_TW':
+                        F_brand.append("1003/CRES")
+                        break
+                    if a=='Qtern_TW':
+                        F_brand.append("1043/QTER")
+                        break
+                    if a=='Faslodex_TW':
+                        F_brand.append("2003/FASL")
+                        break
+                    if a=='Iressa_TW':
+                        F_brand.append("2004/IRES")
+                        break
+                    if a=='Zoladex_TW':
+                        F_brand.append("2009/ZOLA")
+                        break
+                    if a=='Lynparza_TW':
+                        F_brand.append("2020/LYNP")
+                        break
+                    if a=='Tagrisso_TW':
+                        F_brand.append("2032/TAGR")
+                        break
+                    if a=='Imfinzi_TW':
+                        F_brand.append("2033/IMFI")
+                        break
+                    if a=='Acalabrutinibr_TW':
+                        F_brand.append("2045/Acalabrutinib")
+                        break
+                    if a=='Symbicort_TW':
+                        F_brand.append("3010/SYMB")
+                        break
+                    if a=='Fasenra_TW':
+                        F_brand.append("3034/FASE")
+                        break
+                    if a=='Bevespi_TW':
+                        F_brand.append("3043/BEVE")
+                        break
+                    if a=='Brilinta_TW':
+                        F_brand.append("1022/BRIL")
+                        break
+                    if a=='Onglyza_TW':
+                        F_brand.append("1025/ONGL")
+                        break
+                    if a=='Forxiga_TW':
+                        F_brand.append("1026/FORX")
+                        break
+                    if a=='Xigduo_TW':
+                        F_brand.append("1034/XIGD")
+                        break
+                    if a=='Byduren_TW':
+                        F_brand.append("1037/BYDU")
+                        break
+                    else:
+                        F_brand.append("Error")
+                        break
+                
+    print(mamu_Error_file_name)
+    print(F_doc_name)
+    print(F_fee)
+    print(F_date)
+    print(F_location)
+    print(F_cost_number)
+    print(F_GL)
+    print(F_IO)
+    print(F_brand)
+    print(F_docID)
+    
+    
+    def multipleCheck():
+        import pandas as pd
+        import numpy as np
+        def coveryes():
+            Operation_Time[y]=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+            window4.destroy()
+            
+        def coverno():
+            window4.destroy()
+            E_num[z]="Error"
+            # E_num.pop(z)
+            # F_doc_name.pop(z)
+            # F_fee.pop(z)
+            # F_date.pop(z)
+            # F_location.pop(z)
+            # F_cost_number.pop(z)
+            # F_GL.pop(z)
+            # F_IO.pop(z)
+            # F_brand.pop(z)
+            # F_docID.pop(z)
+            # PayMethods.pop(z)
+            # B_and_DelF_error.pop(z)
+        df = pd.read_csv(os.path.join(input_path+'\\資料庫\\multipleCheck.csv'),encoding='big5') 
+        ALL=np.array(df)
+        ALL_list=ALL.tolist()
+        ALL_list_ADJ=[[row[col]for row in ALL_list ]for col in range(len(ALL_list[0]))]   
+        E_ID_check=ALL_list_ADJ[0]   
+        DocNAME_check=ALL_list_ADJ[1] 
+        Operation_Time=ALL_list_ADJ[2] 
+        
+
+        for z in range(0,len(final_str_num)):
+            if final_str_num[z]=='Error':
+                continue
+            if B_and_DelF_error[z]=='1':
+                continue
+            if E_num[z]=="Error":
+                continue
+                
+            for y in range(0,len(E_ID_check)): 
+                test2=0     
+
+                if E_ID_check[y]==E_ID[final_str_num[z]]:
+                    test2=test2+1
+                    if DocNAME_check[y]==DocNAME[final_str_num[z]]:
+                        test2=test2+1
+                        window4 = tk.Tk()
+                        window4.title('自動化系統')
+                        window4.geometry('400x350')
+                        varName = tk.StringVar()
+                        varName.set('')
+                        labGrade = tk.Label(window4, text ='Event-ID:'+str(E_ID[final_str_num[z]]), justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=40, width=400, height=20)
+                        labGrade = tk.Label(window4, text = '醫生姓名:'+DocNAME[final_str_num[z]], justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=60, width=400, height=20)
+                        labGrade = tk.Label(window4, text ='曾經在'+(Operation_Time[y])+'產生過Cover Page', justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=80, width=400, height=20)
+                        labGrade = tk.Label(window4, text ='請問這次還需要製作Cover Page嗎?', justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=100, width=400, height=20)
+                        c = tk.Button(window4, text='製作', font=('Arial', 12), width=20, height=1, command=coveryes)
+                        c.place(x=90,y=200)
+                        c = tk.Button(window4, text='不要製作', font=('Arial', 12), width=20, height=1, command=coverno)
+                        c.place(x=90,y=250)   
+                        window4.mainloop()
+                        break
+            if test2<2:
+                E_ID_check.append(E_ID[final_str_num[z]])
+                DocNAME_check.append(str(DocNAME[final_str_num[z]]))
+                Operation_Time.append(str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) )
+
+
+        test1=pd.DataFrame(columns=["E-ID"],data=E_ID_check)
+        test2=pd.DataFrame(columns=["DocName"],data=DocNAME_check)
+        test3=pd.DataFrame(columns=["Time"],data=Operation_Time)
+        df = pd.concat( [test1,test2,test3], axis=1 )
+        df.to_csv(os.path.join(input_path+'\\資料庫\\multipleCheck.csv'),encoding='big5',index=False) 
+
+        
+    
+    multipleCheck()
+    print("after")
+    print(E_num)
+    print(mamu_Error_file_name)
+    print(F_doc_name)
+    print(F_fee)
+    print(F_date)
+    print(F_location)
+    print(F_cost_number)
+    print(F_GL)
+    print(F_IO)
+    print(F_brand)
+    print(F_docID)
+    
+    
+    from openpyxl import load_workbook
+    import shutil   
+    def mkdir2(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)       
+    path = os.path.join(input_path,'處理完成的檔案')
+    mkdir2(path)
+    
+    def mkdir4(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+    path = os.path.join(input_path+'\\處理完成的檔案','原始檔')
+    mkdir4(path)
+    
+    # wb = load_workbook(os.path.join(input_path+'\\資料庫','Scan_Cover Page - test.xlsx'))
+    # ws = wb.active
+    # for i in range(0,len(E_num)):
+    #     if F_doc_name[i]=='Error':
+    #         continue
+    #     if E_num[i]=="Error":
+    #         continue
+    #     if B_and_DelF_error[i]=="1":
+    #         continue
+    #     else:
+        
+    #         ws['f44'] = '受款人:'+str(F_doc_name[i])+'\n\n'+'金 額:NT$'+str(F_fee[i]) + '\n\n' + '說 明:演講費  for ' + str(F_date[i]) + 'at ' +str( F_location[i])
+    #         ws['h44'] = 'Cost:' + str(F_cost_number[i])+'\n' + 'GL:  ' + str(F_GL[i])+'\n' + 'I/O: ' + str(F_IO[i]) + '\n'+'Brand:' + str(F_brand[i])
+    #         a='活動日期'+str(F_date[i])
+    #         date_adj=a.replace("/", "-")
+    #         name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"]"+F_doc_name[i]+"["+E_num[i]+"].xlsx" )
+    #         wb.save(name)
+    #         try:
+    #             shutil.move(os.path.join(input_path+"\\需要掃描的檔案",E_file_name[i]+'.pdf'),os.path.join(input_path+'\\處理完成的檔案\\原始檔',E_file_name[i]+'.pdf'))
+    #         except FileNotFoundError:
+    #              print("FileNotFoundError"+"處理完成的檔案:"+E_file_name[i]+"   已經處理過或是找不到")
+    #              print("正常錯誤無須擔心")
+    
+    
+    wb = load_workbook(os.path.join(input_path+'\\資料庫','Scan_Cover Page - test.xlsx'))
+    ws = wb.active
+    
+   
+    total_fee=[]
+    CP_DOCname=[]
+    F_pro_to_check_CP=[]
+    F_pro_ind_check_CP=[] 
+ 
+    for i in range(0,len(E_num)):
+        F_pro_to_check_CP.append(0)
+        F_pro_ind_check_CP.append(0)
+    for i in range(0,len(E_num)):
+      
+        if F_pro_to_check_CP[i]==0:
+              
+              if E_num[i]=="Error":
+                  continue
+              F_pro_to_check_CP[i]=1
+              F_pro_ind_check_CP[i]=1
+              for z in range(0,len(E_num)):
+                  if i==z:
+                       continue
+                  if B_and_DelF_error[i]=="1":
+                      continue
+                  if B_and_DelF_error[z]=="1":
+                       continue
+                  if E_num[i]=="Error":
+                       continue
+                  if E_num[z]=="Error":
+                       continue
+
+                  if E_num[i]==E_num[z]:
+                       F_pro_to_check_CP[i]=1
+                       F_pro_to_check_CP[z]=1
+                       F_pro_ind_check_CP[i]=1
+                       F_pro_ind_check_CP[z]=1
+                       
+              print(F_pro_to_check_CP)
+              for q in range(0,len(E_num)):
+                    if F_pro_ind_check_CP[q]==1:
+                        CP_DOCname.append(str(DocNAME[final_str_num[q]])+str(F_docID[q])+",金額:"+str(F_fee[q])+"元")
+                        total_fee.append(F_fee[q])
+              t=str("")
+              t2=str("")
+              if len(CP_DOCname)<=6:
+                  for w in range(0,len(CP_DOCname)):
+                      t=t+str(CP_DOCname[w])+'\n'
+              if len(CP_DOCname)>6:
+                  for w in range(0,6):
+                      t=t+str(CP_DOCname[w])+'\n'
+                  for w in range(6,len(CP_DOCname)):
+                      t2=t2+str(CP_DOCname[w])+'\n'
+              to_fee=0
+              for qw in range(0,len(total_fee)):
+                  to_fee=to_fee+total_fee[qw]
+              print("t=")
+              print(t)
+              ws['g44'] ='受款人:\n'+str(t)
+              ws['h44'] = "\n"+t2
+              ws['f44'] = '說 明:演講費 for' + str(F_date[i]) + '\n'+'at ' +str( F_location[i])+'\n'+'Cost:' + str(F_cost_number[i])+'\n' + 'GL:' + str(F_GL[i])+'\n' + 'I/O:' + str(F_IO[i]) + '\n'+'Brand:' + str(F_brand[i])+'\n'+'總金額:'+str(to_fee)+"元"              
+              a='活動日期'+str(F_date[i])
+              
+              date_adj=a.replace("/", "-")
+              name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"].["+str(E_num[i])+"].xlsx" )
+              wb.save(name)
+              to_fee=0
+              F_pro_ind_check_CP.clear()
+              CP_DOCname.clear()
+              total_fee.clear()
+              for r in range(0,len(E_num)):
+                  F_pro_ind_check_CP.append(0)
+                 
+              try:
+                shutil.move(os.path.join(input_path+"\\需要掃描的檔案",E_file_name[i]+'.pdf'),os.path.join(input_path+'\\處理完成的檔案\\原始檔',E_file_name[i]+'.pdf'))
+              except FileNotFoundError:
+                  print("FileNotFoundError"+"處理完成的檔案:"+E_file_name[i]+"   已經處理過或是找不到")
+                  print("正常錯誤無須擔心") 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+    
+    def mkdir3(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+            
+    path = os.path.join(input_path,'需要手動處理的檔案')
+    mkdir3(path)
+          
+    E_empty=[]
+    name2=['需要人工操作的檔案']
+    test2=pd.DataFrame(columns=name2,data=mamu_Error_file_name)
+    df = pd.concat( [test2,], axis=1 )
+    df.index=df.index+1
+    
+    df.to_csv(os.path.join(input_path+'\\需要手動處理的檔案','無法辨識的檔案.csv'),encoding='big5') 
+    shutil.rmtree(input_path+'\\newdir')
+    for i in range(0,len(mamu_Error_file_name)):
+        try:
+            shutil.move(os.path.join(input_path+"\\需要掃描的檔案",mamu_Error_file_name[i]+'.pdf'),os.path.join(input_path+'\\需要手動處理的檔案',mamu_Error_file_name[i]+'.pdf'))
+        except FileNotFoundError:
+                 print("FileNotFoundError"+"需要手動處理的檔案:"+mamu_Error_file_name[i]+"   已經處理過或是找不到")
+                 print("正常錯誤無須擔心")
+    print(B_and_DelF_error)
+                 
+    def multipleTable():
+        
+    
+        MF_fee=[] 
+        MF_docID=[]
+        F_pro_to_check=[]
+        F_pro_ind_check=[] 
+        F_PayMethods=[]
+        for i in range(0,len(E_num)):
+            F_pro_to_check.append(0)
+            F_pro_ind_check.append(0)
+        for i in range(0,len(E_num)):
+            test3=0
+            if F_pro_to_check[i]==0:
+               test3=0
+               for z in range(0,len(E_num)):
+                   if B_and_DelF_error[i]=="1":
+                       continue
+                   if B_and_DelF_error[z]=="1":
+                       continue
+                   if E_num[i]=="Error":
+                       continue
+                   if E_num[z]=="Error":
+                       continue
+                   if i==z:
+                       continue
+                   if E_num[i]==E_num[z]:
+                       F_pro_to_check[i]=1
+                       F_pro_to_check[z]=1
+                       F_pro_ind_check[i]=1
+                       F_pro_ind_check[z]=1
+                       test3=test3+1
+    
+                    
+               if test3>0:
+                       for q in range(0,len(E_num)):
+                           if F_pro_ind_check[q]==1:
+                                MF_fee.append(F_fee[q])
+                                MF_date=F_date[q]
+                                MF_location=F_location[q]
+                                MF_cost_number=F_cost_number[q]
+                                MF_GL=F_GL[q]
+                                MF_IO=F_IO[q]
+                                MF_brand=F_brand[q]
+                                MF_docID.append(F_docID[q])
+                                F_PayMethods.append(PayMethods[q])
+                       wb1 = load_workbook(os.path.join(input_path+'\\資料庫','multiplePRF.xlsx'))
+                       ws1 = wb1.active
+                       
+                       yyyy_str=MF_date.find("/")
+                       mmdd_str=MF_date.find("/",yyyy_str+1)
+                       
+                       yyyy=MF_date[:4]
+                       mm=MF_date[yyyy_str+1:mmdd_str]
+                       dd=MF_date[mmdd_str+1:]
+                       if len(mm)==1:
+                           mm="0"+mm
+                       if len(dd)==1:
+                           dd="0"+dd
+                       
+                       
+                       
+                       for w in range(0,sum(F_pro_ind_check)):
+                           s=2*w+2
+                           ws1["B"+str(s)] ="HON"+str(dd)+str(mm)+str(yyyy)
+                           ws1["C"+str(s)]=str(dd)+"."+str(mm)+"."+str(yyyy)
+                           ws1["D"+str(s)]="TWD"
+                           ws1["F"+str(s)]=str(MF_docID[w])
+                           ws1["H"+str(s)]=str(MF_docID[w])
+                           ws1["L"+str(s)]=time.strftime("%d.%m.%Y", time.localtime())
+                           ws1["M"+str(s)]=F_PayMethods[w]
+                           ws1["U"+str(s)]=str(MF_date)+str(MF_location)
+                           ws1["H"+str(s+1)]=MF_GL
+                           ws1["K"+str(s+1)]=F_fee[w]
+                           ws1["N"+str(s+1)]=F_fee[w]
+                           ws1["Q"+str(s+1)]=MF_cost_number
+                           ws1["R"+str(s+1)]=str(MF_brand[:4])
+                           ws1["S"+str(s+1)]=MF_IO[3:]
+                           ws1["L"+str(s+1)]=time.strftime("%d.%m.%Y", time.localtime())
+                       a='活動日期'+str(F_date[i])
+                       date_adj=a.replace("/", "-")
+                       name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"]"+".["+str(E_num[i])+"]multiplePRF_table.xlsx" )
+                       wb1.save(name)       
+                       MF_fee.clear()
+                       MF_docID.clear()
+                       F_pro_ind_check.clear()
+                       F_PayMethods.clear()
+                       for i in range(0,len(E_num)):
+                           F_pro_ind_check.append(0)
+          
+    multipleTable()
+
+
+    if len(master_error)>0:
+        a=len(master_error)
+        window = tk.Tk()
+        window.title('自動化系統提醒')
+        window.geometry('360x700')
+        varName = tk.StringVar()
+        varName.set('') 
+        labGrade = tk.Label(window, text = '系統無法在Vendor master找到以下醫生的TW號碼', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=40, width=280, height=20)
+        labGrade = tk.Label(window, text = '更新Vendor master資料庫可能可以解決此問題', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=60, width=280, height=20)
+        labGrade = tk.Label(window, text = '如果輸入的醫生名字包含其他資訊(含英文名字)', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=80, width=280, height=20)
+        labGrade = tk.Label(window, text = '也會發生這個問題', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=100, width=280, height=20)
+        labGrade = tk.Label(window, text = '請手動更新這些醫師的Cover Page:', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=120, width=280, height=20)
+
+        for z in range(0,len(master_error)):
+            labGrade = tk.Label(window, text =str(DocNAME[final_str_num[master_error[z]]])+str(E_ID[final_str_num[master_error[z]]]) , justify=tk.RIGHT, width=250)
+            labGrade.place(x=40, y=140+20*(z+1), width=250, height=20)
+        labGrade = tk.Label(window, text = '請關閉視窗來繼續處理', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=20*a+200, width=250, height=20)
+        window.mainloop()
+
+    Fee_Error_str=[]
+    Fee_Error_name=[]
+    Fee_Error_E_ID=[]
+    for i in range(0,len(final_str_num)):
+        if final_str_num[i]=="Error":
+            continue
+        if B_and_DelF_error=="1":
+            continue
+        if F_fee[i]=="Error":
+            Fee_Error_str.append(final_str_num[i])
+    if len(Fee_Error_str)>0:
+        for i in range(0,len(Fee_Error_str)):
+            Fee_Error_name.append(DocNAME[Fee_Error_str[i]])
+            Fee_Error_E_ID.append(E_ID[Fee_Error_str[i]])
+        a=len(Fee_Error_name)   
+        window = tk.Tk()
+        window.title('自動化系統提醒')
+        window.geometry('330x700')
+        varName = tk.StringVar()
+        varName.set('')
+        
+        labGrade = tk.Label(window, text = '系統無法在資料庫中取得以下醫師的演講費金額', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=40, width=250, height=20)
+        labGrade = tk.Label(window, text = '這些醫師的演講費目前以[Error]取代', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=60, width=250, height=20)
+        labGrade = tk.Label(window, text = '請手動更新這些醫師的Cover Page', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=80, width=250, height=20)
+
+        for z in range(0,len(Fee_Error_name)):
+            labGrade = tk.Label(window, text =str(Fee_Error_E_ID[z])+str(Fee_Error_name[z]) , justify=tk.RIGHT, width=250)
+            labGrade.place(x=40, y=100+20*(z+1), width=250, height=20)
+        labGrade = tk.Label(window, text = '請關閉視窗來繼續處理', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=20*a+160, width=250, height=20)
+        window.mainloop()
+
+
+
+
+
+
+
+
+                 
+    print('處理完成')
+    
+    window = tk.Tk()
+    window.title('自動化系統')
+    window.geometry('330x200')
+    varName = tk.StringVar()
+    varName.set('')
+    labGrade = tk.Label(window, text = '檔案處理完成', justify=tk.RIGHT, width=50)
+    labGrade.place(x=40, y=40, width=250, height=20)
+    labGrade = tk.Label(window, text = '請至[自動化處理]資料夾取用檔案', justify=tk.RIGHT, width=50)
+    labGrade.place(x=40, y=60, width=250, height=20)
+    labGrade = tk.Label(window, text = '請特別留意需要人工處理的檔案', justify=tk.RIGHT, width=50)
+    labGrade.place(x=40, y=80, width=250, height=20)
+   
+    window.mainloop()
+    
+    
+    Hello()
+    
+def manuinput():
+    
+    
+    global E_num,E_str
+    CloseWin()
+    df = pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_test.xlsx') ,sheet_name='auto_test') 
+    df2 =pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_test_prod.xlsx'), sheet_name='auto_test_prod')
+    ALL=np.array(df)
+    ALL_list=ALL.tolist()
+    ALL_list_ADJ=[[row[col]for row in ALL_list ]for col in range(len(ALL_list[0]))]   
+    ALL2=np.array(df2)
+    ALL_list2=ALL2.tolist()
+    ALL_list_ADJ2=[[row[col]for row in ALL_list2 ]for col in range(len(ALL_list2[0]))]    
+    E_ID=ALL_list_ADJ[1]   
+    DocNAME=ALL_list_ADJ[4]
+    for i in range(0,len(DocNAME)):
+        DocNAME[i]=str(DocNAME[i])
+        DocNAME[i]=DocNAME[i].strip('., ')
+    
+    ADOC_ID=ALL_list_ADJ[3]    
+    ASTART_DATE=ALL_list_ADJ[5]   
+    ALocation=ALL_list_ADJ[6]  
+    AFee=ALL_list_ADJ[7]    
+    AInternal_Order=ALL_list_ADJ[8]    
+    E_ID_Br=ALL_list_ADJ2[1]  
+    Br=ALL_list_ADJ2[3]  
+
+    E_num=[]
+    process=[]
+    Docnamepro=[]
+    E_str=[]
+    def Enter():
+        global EGET
+        EGET=e.get()
+        print(EGET)
+        test1=0
+        for i in range(0,len(E_ID)):
+            if E_ID[i]=='E-'+str(EGET):   
+                test1=test1+1
+                window2.destroy()
+                Enter1_1()
+                break
+        if test1==0:
+           window3 = tk.Tk()
+           window3.title('無法處理')
+           window3.geometry('300x250')
+           varName = tk.StringVar()
+           varName.set('')
+           labGrade = tk.Label(window3, text = '資料庫中找不到此Event-ID', justify=tk.RIGHT, width=250)
+           labGrade.place(x=10, y=40, width=250, height=20)
+           labGrade = tk.Label(window3, text = '請再次確認輸入是否正確', justify=tk.RIGHT, width=250)
+           labGrade.place(x=10, y=80, width=250, height=20)
+           labGrade = tk.Label(window3, text = '更新資料庫可能可以解決此問題', justify=tk.RIGHT, width=250)
+           labGrade.place(x=10, y=120, width=250, height=20)
+    def Enter1_1():
+        E_str.pop(-1)
+        global Enter,comGrade,window1,EID_pro
+        Docnamepro.clear()
+        process.clear()
+        if EGET=='':
+           E_num.pop(-1)
+           E_num.append('Empty') 
+        else:
+           E_num.pop(-1)
+           E_num.append(EGET) 
+           EID_pro=EGET
+           for i in range(0,len(E_ID)):
+               if E_ID[i]=="E-"+EID_pro:
+                   process.append(i)
+           for i in range(0,len(process)):
+               q=DocNAME[process[i]]
+               Docnamepro.append(q)
+        
+           window1 = tk.Tk()
+           window1.title('請選擇醫生姓名')
+           window1.geometry('500x600')
+           varName = tk.StringVar()
+           varName.set('')
+           labGrade1 = tk.Label(window1, text = 'Event-ID : E-'+str(EID_pro), justify=tk.RIGHT, width=50)
+           labGrade1.place(x=10, y=40, width=140, height=20)
+           labGrade = tk.Label(window1, text = '醫生姓名:', justify=tk.RIGHT, width=250)
+           labGrade.place(x=10, y=80, width=100, height=20)
+           stdGrade = (Docnamepro)
+           comGrade = tt.Combobox(window1, width=50, values=stdGrade)
+           comGrade.place(x=110, y=80, width=100, height=20)
+           b = tk.Button(window1, text='確定', font=('Arial', 12), width=25, height=1, command=Enter2)
+           b.place(x=70,y=350)
+           g = tk.Button(window1, text='此E-ID還有其他醫生需要登入', font=('Arial', 12), width=25, height=1, command=Enter3)
+           g.place(x=70,y=450)
+           d = tk.Button(window1, text='取消', font=('Arial', 12), width=25, height=1, command=stop)
+           d.place(x=70,y=550)
+           E_str.append("Error")
+           
+           window1.mainloop()
+    def Enter3():
+        test=0
+        E_str.pop(-1)
+        
+        for w in range(0,len(process)):
+            if comGrade.get()==DocNAME[process[w]]:
+                E_str.append(process[w])
+                test=test+1
+        if test==0:
+            E_str.append('Error')
+        window1.destroy()
+        E_num.append(EGET)
+        E_str.append('Error')
+        Enter1_1()
+    def Enter2():
+        test=0
+        E_str.pop(-1)
+        for w in range(0,len(process)):
+            if comGrade.get()==DocNAME[process[w]]:
+                E_str.append(process[w])
+                test=test+1
+        if test==0:
+            E_str.append('Error')
+        window1.destroy()
+        manu_first()
+    def stop():   
+        E_str.append('Error')
+        window1.destroy() 
+        manu_first()
+    def CloseWin2():
+           
+        E_str.pop(-1)
+        E_num.pop(-1)
+        window2.destroy()
+    def manu_first():
+        global e, window2
+        window2 = tk.Tk()
+        window2.title('請輸入Event ID')
+        window2.geometry('500x400')
+        varName = tk.StringVar()
+        varName.set('')
+        labGrade = tk.Label(window2, text = '請輸入EventID(輸入後6位數字即可)', justify=tk.RIGHT, width=200)
+        labGrade.place(x=30, y=40, width=200, height=20)
+        labGrade2 = tk.Label(window2, text = 'E-', justify=tk.RIGHT, width=50)
+        labGrade2.place(x=35, y=70, width=100, height=20)
+        e = tk.Entry(window2 ,show=None, font=('Arial', 14)) 
+        e.place(x=100, y=70)
+        b = tk.Button(window2, text='確定', font=('Arial', 12), width=20, height=1, command=Enter)
+        b.place(x=70,y=250)
+        r = tk.Button(window2, text='結束', font=('Arial', 12), width=20, height=1, command=CloseWin2)
+        r.place(x=70,y=350)
+        E_str.append("Error")
+        E_num.append("Close Windows")
+        window2.mainloop() 
+    manu_first()   
+    print(E_str)      
+    print(E_num)   
+    
+    F_doc_name=[]
+    F_fee=[]
+    F_date=[]
+    F_location=[]
+    F_cost_number=[]
+    F_GL=[]
+    F_IO=[]
+    F_brand=[]
+    F_docID=[]
+    
+    
+    
+    df4 = pd.read_excel(os.path.join(input_path+'\\資料庫\\Vendor master.xlsx') )
+    df4 = df4.fillna("Y")
+    ALL4=np.array(df4)
+    ALL_list4=ALL4.tolist()
+    ALL_list_ADJ4=[[row[col]for row in ALL_list4 ]for col in range(len(ALL_list4[0]))]   
+  
+    TW_ID_master=ALL_list_ADJ4[0]  
+    Name_master=ALL_list_ADJ4[1] 
+    B_master=ALL_list_ADJ4[2] 
+    delF_master=ALL_list_ADJ4[3] 
+    Methods_master=ALL_list_ADJ4[4] 
+    TW_ID_NO_master=ALL_list_ADJ4[7] 
+    
+    master_pro=[]
+    master_str=[]
+    B_and_DelF_error=[]
+    PayMethods=[]
+    
+    def Enter5():
+        
+        F_docID.pop(-1)
+        master_str.pop(-1)
+        print(comGrade3.get())
+        for x in range(0,len(TW_ID_NO_master)):
+            if comGrade3.get()==TW_ID_NO_master[x]:
+                master_str.append(x)
+                F_docID.append(TW_ID_master[x])
+                break
+        window5.destroy()
+            
+    def stop5():
+       window5.destroy()
+    
+    
+    
+    df5 = pd.read_excel(os.path.join(input_path+'\\資料庫\\auto_cost.xlsx') )
+    df5 = df5.fillna("NaN")
+    ALL5=np.array(df5)
+    ALL_list5=ALL5.tolist()
+    ALL_list_ADJ5=[[row[col]for row in ALL_list5 ]for col in range(len(ALL_list5[0]))]   
+    E_ID_cost=ALL_list_ADJ5[1]
+    Type_cost=ALL_list_ADJ5[3]
+    Cost_cost=ALL_list_ADJ5[4]
+    Name_cost=ALL_list_ADJ5[5]
+    for i in range(0,len(Name_cost)):
+        Name_cost[i]=Name_cost[i].strip('., ')
+    
+    
+    
+    master_error=[]
+
+    for i in range(0,len(E_str)):
+        if E_str[i]=='Error':
+            F_doc_name.append("Error")
+            F_fee.append("Error")
+            F_date.append("Error")
+            F_location.append("Error")
+            F_cost_number.append("Error")
+            F_GL.append("Error")
+            F_IO.append("Error")
+            F_brand.append("Error")   
+            F_docID.append("Error")
+            PayMethods.append("Error")
+            B_and_DelF_error("Error")
+            
+        else:
+            test_cost_f=0
+            test_cost=0
+            for z in range(0,len(E_ID_cost)):
+                if "E-"+str(E_num[i])==E_ID_cost[z]:
+                    test_cost=test_cost+1
+                    if Type_cost[z]=="演講費":
+                        test_cost=test_cost+1
+                        if Name_cost[z]==DocNAME[E_str[i]]:
+                            test_cost=test_cost+1
+                            if Cost_cost[z] !="NaN":
+                                test_cost_f=test_cost_f+1
+                                F_fee.append(Cost_cost[z])
+                                break
+            print(test_cost_f)
+            if test_cost_f==0:              
+                for q in range(0,len(E_ID_cost)):
+                    if "E-"+str(E_num[i])==E_ID_cost[q]:                        
+                        if Type_cost[q]=="演講費":  
+                            if Name_cost[q]=="NaN": 
+                            
+                                if Cost_cost[q] !="NaN":
+                                    F_fee.append(Cost_cost[q])
+                                    test_cost_f=test_cost_f+1
+                                    break     
+            
+            if test_cost_f==0:
+                  F_fee.append("Error")
+            
+            pro_ID=[]
+            master_pro.clear()
+            pro_ID.clear()
+            for z in range(0,len(TW_ID_master)):
+                if DocNAME[E_str[i]]==Name_master[z]:
+                    master_pro.append(z)
+            if len(master_pro)==0:
+                print("Vendor Error")
+                master_str.append("Error")
+                F_docID.append("Error")
+                master_error.append(i)
+            if len(master_pro)==1:
+                F_docID.append(TW_ID_master[master_pro[0]])
+                master_str.append(master_pro[0])
+            if len(master_pro)>1:
+               print(master_pro)
+               
+               for q in range(0,len(master_pro)):
+                   pro_ID.append(TW_ID_NO_master[master_pro[q]])
+                   
+               window5 = tk.Tk()
+               window5.title('請協助辨識醫生身分證字號')
+               window5.geometry('500x600')
+               varName = tk.StringVar()
+               varName.set('')
+               labGrade1 = tk.Label(window5, text = 'Event-ID : '+str(E_ID[E_str[i]]), justify=tk.RIGHT, width=50)
+               labGrade1.place(x=10, y=40, width=140, height=20)
+               labGrade = tk.Label(window5, text = '醫生姓名:'+str(DocNAME[E_str[i]]), justify=tk.RIGHT, width=250)
+               labGrade.place(x=15, y=80, width=100, height=20)
+               labGrade = tk.Label(window5, text = "請選擇身分證字號:",justify=tk.RIGHT, width=250)
+               labGrade.place(x=15, y=120, width=100, height=20)
+               stdGrade3 = pro_ID
+               comGrade3 = tt.Combobox(window5, width=50, values=stdGrade3)
+               comGrade3.place(x=150, y=120, width=100, height=20)
+               b = tk.Button(window5, text='確定', font=('Arial', 12), width=25, height=1, command=Enter5)
+               b.place(x=70,y=350)
+               d = tk.Button(window5, text='取消', font=('Arial', 12), width=25, height=1, command=stop5)
+               d.place(x=70,y=450)
+               F_docID.append("Error")
+               master_str.append("Error")
+               window5.mainloop() 
+            print("master_str")
+            print(master_str)
+            
+            
+            if master_str[i] !="Error":
+                if B_master[master_str[i]]=='X' or delF_master[master_str[i]] == 'X':
+                  
+                       window6 = tk.Tk()
+                       window6.title('沒有付款方式(Vendor Error)')
+                       window6.geometry('330x250')
+                       varName = tk.StringVar()
+                       varName.set('')
+                       labGrade6 = tk.Label(window6, text = 'Event-ID : '+str(E_ID[E_str[i]]), justify=tk.RIGHT, width=300)
+                       labGrade6.place(x=10, y=40, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '醫生姓名:'+str(DocNAME[E_str[i]]+str(F_docID[i])), justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=80, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '付款方式尚未設定', justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=120, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '請手動處理'+str(DocNAME[E_str[i]])+"的Cover Page", justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=160, width=300, height=20)
+                       labGrade = tk.Label(window6, text = '(關閉視窗來繼續執行)', justify=tk.RIGHT, width=300)
+                       labGrade.place(x=15, y=200, width=300, height=20)
+                       window6.mainloop() 
+                       B_and_DelF_error.append('1')
+                     
+                if  B_master[master_str[i]]== "Y" and delF_master[master_str[i]]=="Y":
+                       B_and_DelF_error.append('0')
+                
+                PayMethods.append(Methods_master[master_str[i]])
+                
+            else:
+                B_and_DelF_error.append('1')
+                PayMethods.append("Error")
+            
+            F_doc_name.append(str(DocNAME[E_str[i]])+str(F_docID[i]))
+            #F_fee.append(AFee[E_str[i]])
+            F_date.append(ASTART_DATE[E_str[i]])
+            F_location.append(ALocation[E_str[i]])
+            F_cost_number.append('21007000')
+            F_GL.append('57800100')
+            F_IO.append(AInternal_Order[E_str[i]])
+            #F_docID.append(ADOC_ID[E_str[i]])
+            for z in range(0,len(E_ID_Br)):
+                if E_ID_Br[z]=="E-"+E_num[i]:
+                    a=Br[z]
+                    if a=='Crestor_TW':
+                        F_brand.append("1003/CRES")
+                        break
+                    if a=='Qtern_TW':
+                        F_brand.append("1043/QTER")
+                        break
+                    if a=='Faslodex_TW':
+                        F_brand.append("2003/FASL")
+                        break
+                    if a=='Iressa_TW':
+                        F_brand.append("2004/IRES")
+                        break
+                    if a=='Zoladex_TW':
+                        F_brand.append("2009/ZOLA")
+                        break
+                    if a=='Lynparza_TW':
+                        F_brand.append("2020/LYNP")
+                        break
+                    if a=='Tagrisso_TW':
+                        F_brand.append("2032/TAGR")
+                        break
+                    if a=='Imfinzi_TW':
+                        F_brand.append("2033/IMFI")
+                        break
+                    if a=='Acalabrutinibr_TW':
+                        F_brand.append("2045/Acalabrutinib")
+                        break
+                    if a=='Symbicort_TW':
+                        F_brand.append("3010/SYMB")
+                        break
+                    if a=='Fasenra_TW':
+                        F_brand.append("3034/FASE")
+                        break
+                    if a=='Bevespi_TW':
+                        F_brand.append("3043/BEVE")
+                        break
+                    if a=='Brilinta_TW':
+                        F_brand.append("1022/BRIL")
+                        break
+                    if a=='Onglyza_TW':
+                        F_brand.append("1025/ONGL")
+                        break
+                    if a=='Forxiga_TW':
+                        F_brand.append("1026/FORX")
+                        break
+                    if a=='Xigduo_TW':
+                        F_brand.append("1034/XIGD")
+                        break
+                    if a=='Byduren_TW':
+                        F_brand.append("1037/BYDU")
+                        break
+                    else:
+                        F_brand.append("Error")
+                        break
+                
+    print(E_num)
+    print(F_doc_name)
+    print(F_fee)
+    print(F_date)
+    print(F_location)
+    print(F_cost_number)
+    print(F_GL)
+    print(F_IO)
+    print(F_brand)
+    print(F_docID)
+    
+    def multipleCheck():
+        import pandas as pd
+        import numpy as np
+        def coveryes():
+            Operation_Time[y]=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+            window4.destroy()
+            
+        def coverno():
+            window4.destroy()
+            E_str[z]="Error"
+            # E_num.pop(z)
+            # F_doc_name.pop(z)
+            # F_fee.pop(z)
+            # F_date.pop(z)
+            # F_location.pop(z)
+            # F_cost_number.pop(z)
+            # F_GL.pop(z)
+            # F_IO.pop(z)
+            # F_brand.pop(z)
+            # F_docID.pop(z)
+            # PayMethods.pop(z)
+            # B_and_DelF_error.pop(z)
+            
+        df = pd.read_csv(os.path.join(input_path+'\\資料庫\\multipleCheck.csv'),encoding='big5') 
+        ALL=np.array(df)
+        ALL_list=ALL.tolist()
+        ALL_list_ADJ=[[row[col]for row in ALL_list ]for col in range(len(ALL_list[0]))]   
+        E_ID_check=ALL_list_ADJ[0]   
+        DocNAME_check=ALL_list_ADJ[1] 
+        Operation_Time=ALL_list_ADJ[2] 
+        print(B_and_DelF_error)
+        
+        for z in range(0,len(E_str)):
+            if E_str[z]=="Error":
+                continue
+            if B_and_DelF_error[z]=='1':
+                continue
+            
+            for y in range(0,len(E_ID_check)):          
+                test2=0
+
+                if E_ID_check[y]==str(E_ID[E_str[z]]):
+                    test2=test2+1
+                    if DocNAME_check[y]==DocNAME[E_str[z]]:
+                        test2=test2+1
+                        window4 = tk.Tk()
+                        window4.title('自動化系統')
+                        window4.geometry('400x350')
+                        varName = tk.StringVar()
+                        varName.set('')
+                        labGrade = tk.Label(window4, text ='Event-ID:'+str(E_ID[E_str[z]]), justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=40, width=400, height=20)
+                        labGrade = tk.Label(window4, text = '醫生姓名:'+DocNAME[E_str[z]], justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=60, width=400, height=20)
+                        labGrade = tk.Label(window4, text ='曾經在'+(Operation_Time[y])+'產生過Cover Page', justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=80, width=400, height=20)
+                        labGrade = tk.Label(window4, text ='請問這次還需要製作Cover Page嗎?', justify=tk.RIGHT, width=400)
+                        labGrade.place(x=5, y=100, width=400, height=20)
+                        c = tk.Button(window4, text='製作', font=('Arial', 12), width=20, height=1, command=coveryes)
+                        c.place(x=90,y=200)
+                        c = tk.Button(window4, text='不要製作', font=('Arial', 12), width=20, height=1, command=coverno)
+                        c.place(x=90,y=250)
+                        window4.mainloop()
+                        break
+            if test2<2:
+                 E_ID_check.append(E_ID[E_str[z]])
+                 DocNAME_check.append(str(DocNAME[E_str[z]]))
+                 Operation_Time.append(str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) )
+                
+        test1=pd.DataFrame(columns=["E-ID"],data=E_ID_check)
+        test2=pd.DataFrame(columns=["DocName"],data=DocNAME_check)
+        test3=pd.DataFrame(columns=["Time"],data=Operation_Time)
+        df = pd.concat( [test1,test2,test3], axis=1 )
+        df.index=df.index+1
+        df.to_csv(os.path.join(input_path+'\\資料庫\\multipleCheck.csv'),encoding='big5',index=False) 
+
+        
+    
+    #multipleCheck()
+
+
+    from openpyxl import load_workbook
+ 
+    def mkdir2(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)       
+    path = os.path.join(input_path,'處理完成的檔案')
+    mkdir2(path)
+    
+    # wb = load_workbook(os.path.join(input_path+'\\資料庫','Scan_Cover Page - test.xlsx'))
+    # ws = wb.active
+   
+    # for i in range(0,len(E_num)):
+    #     if F_doc_name[i]=='Error':
+    #         continue
+    #     if E_str[i]=='Error':
+    #         continue
+    #     if B_and_DelF_error[i]=="1":
+    #         continue
+    #     else:
+        
+    #         ws['f44'] = '受款人:'+str(F_doc_name[i])+'\n\n'+'金 額:NT$'+str(F_fee[i]) + '\n\n' + '說 明:演講費  for ' + str(F_date[i]) + 'at ' +str( F_location[i])
+    #         ws['h44'] = 'Cost:' + str(F_cost_number[i])+'\n' + 'GL:  ' + str(F_GL[i])+'\n' + 'I/O: ' + str(F_IO[i]) + '\n'+'Brand:' + str(F_brand[i])
+    #         a='活動日期'+str(F_date[i])
+    #         date_adj=a.replace("/", "-")
+    #         name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"]"+str(F_doc_name[i])+".[E-"+str(E_num[i])+"].xlsx" )
+    #         wb.save(name)
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+    wb = load_workbook(os.path.join(input_path+'\\資料庫','Scan_Cover Page - test.xlsx'))
+    ws = wb.active
+    
+   
+    total_fee=[]
+    CP_DOCname=[]
+    F_pro_to_check_CP=[]
+    F_pro_ind_check_CP=[] 
+ 
+    for i in range(0,len(E_num)):
+        F_pro_to_check_CP.append(0)
+        F_pro_ind_check_CP.append(0)
+    for i in range(0,len(E_num)):
+      
+        if F_pro_to_check_CP[i]==0:
+              
+              if E_str[i]=="Error":
+                  continue
+              F_pro_to_check_CP[i]=1
+              F_pro_ind_check_CP[i]=1
+              for z in range(0,len(E_num)):
+                  if i==z:
+                       continue
+                  if B_and_DelF_error[i]=="1":
+                      continue
+                  if B_and_DelF_error[z]=="1":
+                       continue
+                  if E_str[i]=="Error":
+                       continue
+                  if E_str[z]=="Error":
+                       continue
+
+                  if E_num[i]==E_num[z]:
+                       F_pro_to_check_CP[i]=1
+                       F_pro_to_check_CP[z]=1
+                       F_pro_ind_check_CP[i]=1
+                       F_pro_ind_check_CP[z]=1
+                       
+              print(F_pro_to_check_CP)
+              for q in range(0,len(E_num)):
+                    if F_pro_ind_check_CP[q]==1:
+                        CP_DOCname.append(str(DocNAME[E_str[q]])+str(F_docID[q])+",金額:"+str(F_fee[q])+"元")
+                        total_fee.append(F_fee[q])
+              t=str("")
+              t2=str("")
+              if len(CP_DOCname)<=6:
+                  for w in range(0,len(CP_DOCname)):
+                      t=t+str(CP_DOCname[w])+'\n'
+              if len(CP_DOCname)>6:
+                  for w in range(0,6):
+                      t=t+str(CP_DOCname[w])+'\n'
+                  for w in range(6,len(CP_DOCname)):
+                      t2=t2+str(CP_DOCname[w])+'\n'
+              to_fee=0
+              for qw in range(0,len(total_fee)):
+                  if total_fee[qw]=="Error":
+                      continue
+                  to_fee=to_fee+total_fee[qw]
+              print("t=")
+              print(t)
+              ws['g44'] ='受款人:\n'+str(t)
+              ws['h44'] = "\n"+t2
+              ws['f44'] = '說 明:演講費 for' + str(F_date[i]) + '\n'+'at ' +str( F_location[i])+'\n'+'Cost:' + str(F_cost_number[i])+'\n' + 'GL:' + str(F_GL[i])+'\n' + 'I/O:' + str(F_IO[i]) + '\n'+'Brand:' + str(F_brand[i])+'\n'+'總金額:'+str(to_fee)+"元"              
+              a='活動日期'+str(F_date[i])
+              
+              date_adj=a.replace("/", "-")
+              name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"].[E-"+str(E_num[i])+"].xlsx" )
+              wb.save(name)
+              to_fee=0
+              F_pro_ind_check_CP.clear()
+              CP_DOCname.clear()
+              total_fee.clear()
+              for r in range(0,len(E_num)):
+                  F_pro_ind_check_CP.append(0)
+                  
+
+                      
+
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+   
+    def multipleTable():
+        
+    
+        MF_fee=[] 
+        MF_docID=[]
+        F_pro_to_check=[]
+        F_pro_ind_check=[] 
+        F_PayMethods=[]
+        for i in range(0,len(E_num)):
+            F_pro_to_check.append(0)
+            F_pro_ind_check.append(0)
+        for i in range(0,len(E_num)):
+            test3=0
+            if F_pro_to_check[i]==0:
+               test3=0
+               for z in range(0,len(E_num)):
+                   if i==z:
+                       continue
+                   if B_and_DelF_error[i]=="1":
+                       continue
+                   if B_and_DelF_error[z]=="1":
+                       continue
+                   if E_str[i]=="Error":
+                       continue
+                   if E_str[z]=="Error":
+                       continue
+                   if E_num[i]==E_num[z]:
+                       F_pro_to_check[i]=1
+                       F_pro_to_check[z]=1
+                       F_pro_ind_check[i]=1
+                       F_pro_ind_check[z]=1
+                       test3=test3+1       
+               if test3>0:
+                       for q in range(0,len(E_num)):
+                           if F_pro_ind_check[q]==1:
+                                MF_fee.append(F_fee[q])
+                                MF_date=F_date[q]
+                                MF_location=F_location[q]
+                                MF_cost_number=F_cost_number[q]
+                                MF_GL=F_GL[q]
+                                MF_IO=F_IO[q]
+                                MF_brand=F_brand[q]
+                                MF_docID.append(F_docID[q])
+                                F_PayMethods.append(PayMethods[q])
+                       wb1 = load_workbook(os.path.join(input_path+'\\資料庫','multiplePRF.xlsx'))
+                       ws1 = wb1.active
+                       
+                       yyyy_str=MF_date.find("/")
+                       mmdd_str=MF_date.find("/",yyyy_str+1)
+                       
+                       yyyy=MF_date[:4]
+                       mm=MF_date[yyyy_str+1:mmdd_str]
+                       dd=MF_date[mmdd_str+1:]
+                       if len(mm)==1:
+                           mm="0"+mm
+                       if len(dd)==1:
+                           dd="0"+dd
+                       
+                       
+                       for w in range(0,sum(F_pro_ind_check)):
+                           s=2*w+2
+                           ws1["B"+str(s)] ="HON"+str(dd)+str(mm)+str(yyyy)
+                           ws1["C"+str(s)]=str(dd)+"."+str(mm)+"."+str(yyyy)
+                           ws1["D"+str(s)]="TWD"
+                           ws1["F"+str(s)]=str(MF_docID[w])
+                           ws1["H"+str(s)]=str(MF_docID[w])
+                           ws1["L"+str(s)]=time.strftime("%d.%m.%Y", time.localtime())
+                           ws1["M"+str(s)]=F_PayMethods[w]
+                           ws1["U"+str(s)]=str(MF_date)+str(MF_location)
+                           ws1["H"+str(s+1)]=MF_GL
+                           ws1["K"+str(s+1)]=F_fee[w]
+                           ws1["N"+str(s+1)]=F_fee[w]
+                           ws1["Q"+str(s+1)]=MF_cost_number
+                           ws1["R"+str(s+1)]=str(MF_brand[:4])
+                           ws1["S"+str(s+1)]=MF_IO[3:]
+                           ws1["L"+str(s+1)]=time.strftime("%d.%m.%Y", time.localtime())
+                       a='活動日期'+str(F_date[i])
+                       date_adj=a.replace("/", "-")
+                       name = os.path.join(os.path.join(input_path,'處理完成的檔案'),"["+str(date_adj)+"]"+".[E-"+str(E_num[i])+"]multiplePRF_table.xlsx" )
+                       wb1.save(name)       
+                       MF_fee.clear()
+                       MF_docID.clear()
+                       F_PayMethods.clear()
+                       F_pro_ind_check.clear()
+                       for i in range(0,len(E_num)):
+                           F_pro_ind_check.append(0)
+          
+    multipleTable()
+    
+    
+    
+    
+    
+    
+    
+    if len(master_error)>0:
+        a=len(master_error)
+        window = tk.Tk()
+        window.title('自動化系統提醒')
+        window.geometry('360x700')
+        varName = tk.StringVar()
+        varName.set('') 
+        labGrade = tk.Label(window, text = '系統無法在Vendor master找到以下醫生的TW號碼', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=40, width=280, height=20)
+        labGrade = tk.Label(window, text = '更新Vendor master資料庫可能可以解決此問題', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=60, width=280, height=20)
+        labGrade = tk.Label(window, text = '如果輸入的醫生名字包含其他資訊(含英文名字)', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=80, width=280, height=20)
+        labGrade = tk.Label(window, text = '也會發生這個問題', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=100, width=280, height=20)
+        labGrade = tk.Label(window, text = '請手動更新這些醫師的Cover Page:', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=120, width=280, height=20)
+
+        for z in range(0,len(master_error)):
+            labGrade = tk.Label(window, text =str(DocNAME[E_str[master_error[z]]])+str(E_ID[E_str[master_error[z]]]) , justify=tk.RIGHT, width=250)
+            labGrade.place(x=40, y=140+20*(z+1), width=250, height=20)
+        labGrade = tk.Label(window, text = '請關閉視窗來繼續處理', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=20*a+200, width=250, height=20)
+        window.mainloop()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    Fee_Error_str=[]
+    Fee_Error_name=[]
+    Fee_Error_E_ID=[]
+    for i in range(0,len(E_str)):
+        if E_str[i]=="Error":
+            continue
+        if B_and_DelF_error=="1":
+            continue
+        if F_fee[i]=="Error":
+            Fee_Error_str.append(E_str[i])
+    if len(Fee_Error_str)>0:
+        for i in range(0,len(Fee_Error_str)):
+            Fee_Error_name.append(DocNAME[Fee_Error_str[i]])
+            Fee_Error_E_ID.append(E_ID[Fee_Error_str[i]])
+        a=len(Fee_Error_name)   
+        window = tk.Tk()
+        window.title('自動化系統提醒')
+        window.geometry('330x700')
+        varName = tk.StringVar()
+        varName.set('') 
+        labGrade = tk.Label(window, text = '系統無法在資料庫中取得以下醫師的演講費金額', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=40, width=250, height=20)
+        labGrade = tk.Label(window, text = '這些醫師的演講費目前以[Error]取代', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=60, width=250, height=20)
+        labGrade = tk.Label(window, text = '請手動更新這些醫師的Cover Page:', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=80, width=250, height=20)
+
+        for z in range(0,len(Fee_Error_name)):
+            labGrade = tk.Label(window, text =str(Fee_Error_E_ID[z])+str(Fee_Error_name[z]) , justify=tk.RIGHT, width=250)
+            labGrade.place(x=40, y=100+20*(z+1), width=250, height=20)
+        labGrade = tk.Label(window, text = '請關閉視窗來繼續處理', justify=tk.RIGHT, width=250)
+        labGrade.place(x=40, y=20*a+160, width=250, height=20)
+        window.mainloop()
+            
+                
+
+            
+    
+    
+    
+    
+    
+    
+    print('處理完成')
+    
+    window = tk.Tk()
+    window.title('自動化系統')
+    window.geometry('330x200')
+    varName = tk.StringVar()
+    varName.set('')
+    labGrade = tk.Label(window, text = '處理完成', justify=tk.RIGHT, width=50)
+    labGrade.place(x=40, y=40, width=250, height=20)
+    labGrade = tk.Label(window, text = '請至[自動化處理]資料夾取用檔案', justify=tk.RIGHT, width=50)
+    labGrade.place(x=40, y=60, width=250, height=20)
+    window.mainloop()
+    Hello()
+
+    
+    
+
+
+
+def Hello():  
+    global window
+    window = tk.Tk()
+    window.title('自動化系統')
+    window.geometry('800x550')
+    varName = tk.StringVar()
+    varName.set('')
+    b = tk.Button(window, text='執行Outlook附件下載', font=('Arial', 12), width=20, height=1, command=EmailAtt)
+    b.place(x=70,y=50)
+    labGrade = tk.Label(window, text = '將Outlook中test資料夾的郵件內所有附件下載至[需要掃描的檔案]資料夾', justify=tk.RIGHT, width=50)
+    labGrade.place(x=280, y=45, width=450, height=20)
+    labGrade1 = tk.Label(window, text = '若有非在Outlook中的檔案要處理，請將檔案直接移動至[需要掃描的檔案]資料夾即可', justify=tk.RIGHT, width=50)
+    labGrade1.place(x=280, y=65, width=450, height=20)
+    c = tk.Button(window, text='更新資料庫', font=('Arial', 12), width=20, height=1, command=UpdateData)
+    c.place(x=70,y=175)
+    labGrade = tk.Label(window, text = '開始下載Veeva資料庫(共三個)，請將檔案下載至[自動化處理]中的[資料庫]', justify=tk.RIGHT, width=200)
+    labGrade.place(x=280, y=170, width=450, height=20)
+    labGrade = tk.Label(window, text = '並且將檔案更名為[auto_test],[auto_test_prod]和[auto_cost]', justify=tk.RIGHT, width=200)
+    labGrade.place(x=280, y=190, width=450, height=20)
+    labGrade = tk.Label(window, text = 'Vendor master資料庫請在頁面中自行下載，並將檔案更名為[Vendor master]並放入[資料庫]', justify=tk.RIGHT, width=220)
+    labGrade.place(x=280, y=210, width=500, height=20)
+    d = tk.Button(window, text='自動掃描文件', font=('Arial', 12), width=20, height=1, command=ScanAndPrint)
+    d.place(x=70,y=300)
+    e = tk.Button(window, text='自行輸入E-ID', font=('Arial', 12), width=20, height=1, command=manuinput)
+    e.place(x=70,y=425)
+    window.mainloop()
+    
+Hello()
+
+
+
+
+
+
+
+
